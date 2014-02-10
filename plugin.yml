@@ -1,0 +1,11 @@
+name: CSplegg
+main: com.comze_instancelabs.csplegg.Main
+version: 1.0
+author: instancelabs
+permissions:
+  csplegg.sign:
+    description: Gives access to create signs for joining games.
+commands:
+   csplegg:
+      description: Main command
+      usage: /csplegg [action]

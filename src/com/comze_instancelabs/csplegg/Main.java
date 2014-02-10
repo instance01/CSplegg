@@ -117,7 +117,7 @@ public class Main extends JavaPlugin implements Listener {
     			}else if(action.equalsIgnoreCase("leave")){
     				Player p = (Player)sender;
     				if(arenap.containsKey(p)){
-    					leaveArena(p, arenap.get(p));
+    					leaveArena(p, arenap.get(p), true);
     				}
     			}else if(action.equalsIgnoreCase("start")){
     				if(args.length > 1){
@@ -237,7 +237,7 @@ public class Main extends JavaPlugin implements Listener {
     	
     	for(Player p : arenap.keySet()){
     		if(arenap.get(p).equalsIgnoreCase(arena)){
-    			leaveArena(p, arena);
+    			leaveArena(p, arena, true);
     		}
     	}
     	
@@ -313,13 +313,17 @@ public class Main extends JavaPlugin implements Listener {
     	p.updateInventory();
     }
     
-    public void leaveArena(Player p, String arena){
+    public void leaveArena(Player p, String arena, boolean flag){
     	p.teleport(new Location(getServer().getWorld(getConfig().getString(arena + ".lobby.world")), getConfig().getInt(arena + ".lobby.loc.x"), getConfig().getInt(arena + ".lobby.loc.y"), getConfig().getInt(arena + ".lobby.loc.z")));
     	arenap.remove(p);
     	p.getInventory().clear();
     	p.updateInventory();
     	p.getInventory().setContents(pinv.get(p));
     	p.updateInventory();
+    	
+    	if(!flag){
+    		return;
+    	}
     	
     	if(getPlayerCountInArena(arena) < 2){
 			resetArena(arena);
@@ -362,23 +366,30 @@ public class Main extends JavaPlugin implements Listener {
 			String arena = arenap.get(p);
 			Location spawn = new Location(getServer().getWorld(getConfig().getString(arena + ".spawn.world")), getConfig().getInt(arena + ".spawn.loc.x"), getConfig().getInt(arena + ".spawn.loc.y"), getConfig().getInt(arena + ".spawn.loc.z"));
 			if(p.getLocation().getBlockY() + 1 < spawn.getBlockY()){
-				leaveArena(p, arena);
+				leaveArena(p, arena, false);
 				p.sendMessage("§4You lost!");
 				if(getPlayerCountInArena(arena) < 2){
 					for(Player p_ : arenap.keySet()){
 						if(arenap.get(p_).equalsIgnoreCase(arena)){
 							// last man standing
-							EconomyResponse r = econ.depositPlayer(p_.getName(), 50D); //getConfig().getDouble("config.winning_reward"));
-	            			if(!r.transactionSuccess()) {
-	            				p_.sendMessage(String.format("An error occured: %s", r.errorMessage));
-	                        }
-	            			p_.sendMessage("§2You won!");
+							p_.sendMessage("§2You won!");
+							try{
+								EconomyResponse r = econ.depositPlayer(p_.getName(), 50D); //getConfig().getDouble("config.winning_reward"));
+		            			if(!r.transactionSuccess()) {
+		            				p_.sendMessage(String.format("An error occured: %s", r.errorMessage));
+		                        }
+							}catch(Exception e){
+								
+							}
+							
+	            			
 						}
 					}
 					resetArena(arena);
 				}
 			}
 		}
+		
 	}
 	
 	@EventHandler
